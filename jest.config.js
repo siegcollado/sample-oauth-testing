@@ -2,5 +2,5 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  setupFilesAfterEnv: ['jest-extended/all']
+  setupFilesAfterEnv: ['jest-extended/all', 'dotenv/config']
 };

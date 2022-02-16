@@ -8,7 +8,7 @@ export type OAuthRequestBody = Partial<{
 }>
 
 export async function oAuthRequest (body: OAuthRequestBody): Promise<Response> {
-  return await fetch('https://dev-5twd4ss9.auth0.com/oauth/token', {
+  return await fetch(process.env.TEST_ENDPOINT_URL as string, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

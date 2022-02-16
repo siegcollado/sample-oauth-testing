@@ -1,6 +1,7 @@
 import 'jest-extended'
 import { oAuthRequest, OAuthRequestBody } from './helpers/test-helpers'
 import * as jwt from 'jsonwebtoken'
+import { URL } from 'url'
 
 describe('testing sample oauth credentials', () => {
   const params: OAuthRequestBody = {
@@ -47,8 +48,11 @@ describe('testing sample oauth credentials', () => {
       })
 
       it('contains a valid iss', () => {
+        const { protocol, hostname } = new URL(process.env.TEST_ENDPOINT_URL as string)
+
         expect(decodedValue).toEqual(expect.objectContaining({
-          iss: 'https://dev-5twd4ss9.auth0.com/'
+          iss: `${protocol}//${hostname}/`
+          // iss: 'https://dev-5twd4ss9.auth0.com/'
         }))
       })
 
@@ -79,7 +83,6 @@ describe('testing sample oauth credentials', () => {
       })
     })
   })
-
 
   describe('invalid requests', () => {
     const clientId = 'KRpatygJ3C5xvWxy4UuLkdm5qXMhCvc5'
