@@ -1,8 +1,13 @@
 import 'jest-extended'
-import { oAuthRequest } from './helpers/test-helpers'
+import { oAuthRequest, OAuthRequestBody } from './helpers/test-helpers'
 import * as jwt from 'jsonwebtoken'
 
-describe('testing oauth credentials', () => {
+describe('testing sample oauth credentials', () => {
+  const params: OAuthRequestBody = {
+    grant_type: 'client_credentials',
+    audience: 'https://test-data-api.com',
+  }
+
   describe.each(
     [
       ['KRpatygJ3C5xvWxy4UuLkdm5qXMhCvc5', 'wo-gIcYoQjn-dmGgRe_-pYIZTvgWsA_3tDUOqFLwJpIJdD-wHeDuiQrxrXQor3_X', ['get:clients', 'get:invoices']],
@@ -13,12 +18,12 @@ describe('testing oauth credentials', () => {
     let responseText: any
 
     beforeAll(async () => {
-      responseText = await oAuthRequest({
-        grant_type: 'client_credentials',
+      const response = await oAuthRequest({
+        ...params,
         client_id: clientId,
         client_secret: clientSecret,
-        audience: 'https://test-data-api.com'
       })
+      responseText = await response.json()
     })
 
     test('response contains the required properties', () => {
@@ -72,6 +77,59 @@ describe('testing oauth credentials', () => {
       it('contains the correct scopes', () => {
         expect(decodedValue['permissions']).toIncludeSameMembers(allowedScopes)
       })
+    })
+  })
+
+
+  describe('invalid requests', () => {
+    const clientId = 'KRpatygJ3C5xvWxy4UuLkdm5qXMhCvc5'
+    const clientSecret = 'wo-gIcYoQjn-dmGgRe_-pYIZTvgWsA_3tDUOqFLwJpIJdD-wHeDuiQrxrXQor3_X'
+
+    it('fails for invalid client_id', async () => {
+      const response = await oAuthRequest({
+        ...params,
+        client_secret: clientSecret,
+        client_id: 'invalid_client_id'
+      })
+
+      expect(response.status).toEqual(401)
+      expect(response.statusText).toEqual('Unauthorized')
+    })
+
+    it('fails for invalid client_secret', async () => {
+      const response = await oAuthRequest({
+        ...params,
+        client_id: clientId,
+        client_secret: 'invalid_client_secret'
+      })
+
+      expect(response.status).toEqual(401)
+      expect(response.statusText).toEqual('Unauthorized')
+    })
+
+    it('fails for invalid grant_type', async () => {
+      const response = await oAuthRequest({
+        ...params,
+        grant_type: 'invalid_grant_type',
+        client_id: clientId,
+        client_secret: clientSecret
+      })
+
+      expect(response.status).toEqual(403)
+      expect(response.statusText).toEqual('Forbidden')
+    })
+
+    it('fails for invalid audience', async () => {
+
+      const response = await oAuthRequest({
+        ...params,
+        audience: 'some_invalid_audience',
+        client_id: clientId,
+        client_secret: clientSecret
+      })
+
+      expect(response.status).toEqual(403)
+      expect(response.statusText).toEqual('Forbidden')
     })
   })
 })
